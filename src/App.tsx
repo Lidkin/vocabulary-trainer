@@ -1,34 +1,102 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import AddWordForm from './Components/AddWordForm';
 import './App.css'
+import WordsList from './Components/WordsList';
+
+export interface Word {
+  english: string;
+  russian: string;
+  pronunciation: string;
+  mistackes: number;
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [words, setWords] = useState<Word[]>([]);
+  const [practiceMode, setPracticeMode] = useState<'pronunciation' | 'translation' | 'writing' | null>(null);
+  const [currentWord, setCurrentWord] = useState<Word | null>(null);
+  const [userImput, setUserInput] = useState('');
+  const [message, setMessage] = useState('');
+
+  const addWord = (english: string, russian: string, pronunciation: string) => {
+    setWords([...words, { english, russian, pronunciation, mistackes: 0 }]);
+  }
+
+  const selectWord = () => {
+    const sortedWords = [...words].sort((a, b) => b.mistackes - a.mistackes);
+    return sortedWords[Math.floor(Math.random() * sortedWords.length)];
+  }
+
+  const startPractice = (mode: 'pronunciation' | 'translation' | 'writing') => {
+    setPracticeMode(mode);
+    setCurrentWord(selectWord);
+    setMessage('');
+  }
+
+  const getLabel = (mode: string) => {
+    switch (mode) {
+      case 'pronunciation':
+        return "Pronounce";
+      case 'translation':
+        return "Translate";
+      case 'writing':
+        return "Write";
+    }
+  }
+
+  const handleInput = () => {
+    if (!currentWord) return;
+    let isCorrect = false;
+
+    if (practiceMode == 'pronunciation' && userImput.toLowerCase() == currentWord.pronunciation) {
+      isCorrect = true;
+    } else if (practiceMode == 'translation' && userImput.toLowerCase() == currentWord.russian) {
+      isCorrect = true;
+    } else if (practiceMode == "writing" && userImput.toLowerCase() == currentWord.english) {
+      isCorrect = true;
+    }
+
+    if (isCorrect) {
+      setMessage("Correct!");
+      setCurrentWord(selectWord());
+    } else {
+      setMessage("Incorrect! Try again.");
+      setCurrentWord((prev) => prev ? { ...prev, mistackes: prev.mistackes + 1 } : null);
+    }
+    setUserInput('');
+  }
 
   return (
-    <>
+    <div>
+      <h1>Vocabulary Trainer</h1>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <h2>My Words</h2>
+        <WordsList words={words} />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <div>
+        <h2>Add a new Word</h2>
+        <AddWordForm onAddWord={addWord} />
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+
+      <div>
+        <h2>Practice</h2>
+        <button onClick={() => startPractice('pronunciation')}>Pronunciation</button>
+        <button onClick={() => startPractice('translation')}>Translation</button>
+        <button onClick={() => startPractice('writing')}>Writing</button>
+      </div>
+
+      {practiceMode && currentWord && (
+        <div>
+          <h3>{getLabel(practiceMode)} this word:</h3>
+          <p>{practiceMode == 'writing' ? currentWord.russian : currentWord.english}</p>
+          <input type="text"
+            value={userImput}
+            onChange={(e) => setUserInput(e.target.value)}
+          />
+          <button onClick={handleInput}>Check</button>
+          <p>{message}</p>
+        </div>
+      )}
+    </div>
   )
 }
 
