@@ -4,11 +4,13 @@ import './App.css'
 import WordsList from './Components/WordsList';
 
 export interface Word {
+  id: number;
   english: string;
   russian: string;
   pronunciation: string;
   mistackes: number;
 }
+
 
 function App() {
   const [words, setWords] = useState<Word[]>([]);
@@ -17,18 +19,16 @@ function App() {
   const [userImput, setUserInput] = useState('');
   const [message, setMessage] = useState('');
 
-  const addWord = (english: string, russian: string, pronunciation: string) => {
-    setWords([...words, { english, russian, pronunciation, mistackes: 0 }]);
-  }
 
   const selectWord = () => {
     const sortedWords = [...words].sort((a, b) => b.mistackes - a.mistackes);
+    console.log("sortedWords: ", sortedWords)
     return sortedWords[Math.floor(Math.random() * sortedWords.length)];
   }
 
   const startPractice = (mode: 'pronunciation' | 'translation' | 'writing') => {
     setPracticeMode(mode);
-    setCurrentWord(selectWord);
+    setCurrentWord(selectWord());
     setMessage('');
   }
 
@@ -70,11 +70,11 @@ function App() {
       <h1>Vocabulary Trainer</h1>
       <div>
         <h2>My Words</h2>
-        <WordsList words={words} />
+        <WordsList words={ words } setWords={ setWords } />
       </div>
       <div>
         <h2>Add a new Word</h2>
-        <AddWordForm onAddWord={addWord} />
+        <AddWordForm />
       </div>
 
       <div>

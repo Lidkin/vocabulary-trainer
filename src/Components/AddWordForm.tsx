@@ -1,31 +1,33 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import axios from 'axios';
 
+function AddWordForm() {
+    const [newWord, setNewWord] = useState({ english: '', russian: '', pronunciation: '', mistakes: 0 });
 
-type Props = {
-    onAddWord: (english: string, russian: string, pronunciation: string) => void;
-}
-function AddWordForm({ onAddWord }: Props) {
-    const [english, setEnglish] = useState('');
-    const [russian, setRussian] = useState('');
-    const [pronunciation, setPronunciation] = useState('');
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onAddWord(english, russian, pronunciation);
-        setEnglish('');
-        setRussian('');
-        setPronunciation('');
-
-
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setNewWord({ ...newWord, [name]: value });
     }
+
+    const handleAddWord = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await axios.post('http://localhost:3001/words', newWord);
+            setNewWord({ english: '', russian: '', pronunciation: '', mistakes: 0 })
+        } catch (error) {
+            console.error('Error adding word:', error);
+        }
+    };
+
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleAddWord}>
             <div>
                 <label>English Word / Phrase</label>
                 <input
                     type="text"
-                    value={english}
-                    onChange={(e) => setEnglish(e.target.value)}
+                    name="english"
+                    value={newWord.english}
+                    onChange={handleInputChange}
                     required
                 />
             </div>
@@ -33,8 +35,9 @@ function AddWordForm({ onAddWord }: Props) {
                 <label>Russian Translation</label>
                 <input
                     type="text"
-                    value={russian}
-                    onChange={(e) => setRussian(e.target.value)}
+                    name="russian"
+                    value={newWord.russian}
+                    onChange={handleInputChange}
                     required
                 />
             </div>
@@ -42,8 +45,9 @@ function AddWordForm({ onAddWord }: Props) {
                 <label>Pronunciation</label>
                 <input
                     type="text"
-                    value={pronunciation}
-                    onChange={(e) => setPronunciation(e.target.value)}
+                    name="pronunciation"
+                    value={newWord.pronunciation}
+                    onChange={handleInputChange}
                     required
                 />
             </div>
